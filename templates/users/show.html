@@ -18,7 +18,7 @@
             <p>{{ message.text }}</p>
           </div>
           {% if g.user.id != messages.user_id %}
-          <form method="POST" action="/messages/{{message.id}}/like" class="messages-like">
+          <a href="/messages/{{message.id}}/like" class="messages-like">
             <button class="
               btn 
               btn-sm 
@@ -26,7 +26,7 @@
             >
               <i class="fa fa-thumbs-up"></i> 
             </button>
-          </form>
+          </a>
           {% endif %}
         </li>
 

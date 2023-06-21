@@ -212,7 +212,7 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
-@app.route('/users/<int:user_id>/likes', methods=['POST'])
+@app.route('/users/<int:user_id>/likes', methods=['GET', 'POST'])
 def show_likes(user_id):
     """Shows users liked messages."""
 
@@ -321,7 +321,7 @@ def messages_like(message_id):
     return redirect('/')
 
 
-@app.route('/messages/<int:message_id>/delete', methods=["POST"])
+@app.route('/messages/<int:message_id>/delete', methods=['GET', 'POST'])
 def messages_destroy(message_id):
     """Delete a message."""
 
@@ -379,3 +379,4 @@ def add_header(req):
     req.headers["Expires"] = "0"
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
+
