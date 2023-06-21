@@ -64,7 +64,8 @@ def signup():
     If the there already is a user with that username: flash message
     and re-present form.
     """
-
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
     form = UserAddForm()
 
     if form.validate_on_submit():
@@ -152,7 +153,9 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages)
+    likes = [message.id for message in user.likes]
+    return render_template('users/show.html', user=user, messages=messages, likes=likes)
+
 
 
 @app.route('/users/<int:user_id>/following')
@@ -209,6 +212,18 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
+@app.route('/users/<int:user_id>/likes', methods=['POST'])
+def show_likes(user_id):
+    """Shows users liked messages."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    return render_template('/users/likes.html', user=user, likes=user.likes)
+
+
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
@@ -223,8 +238,8 @@ def profile():
         if User.authenticate(form.username.data, form.password.data):
             user.username = form.username.data
             user.email = form.email.data
-            user.image_url = form.image_url.data
-            user.header_image_url = form.header_image_url.data
+            user.image_url = form.image_url.data or "/static/images/default-pic.png"
+            user.header_image_url = form.header_image_url.data or "/static/images/warbler-hero.jpg"
             user.bio = form.bio.data
             db.session.commit()
             return redirect (f'/users/{user.id}')
@@ -283,7 +298,7 @@ def messages_show(message_id):
     return render_template('messages/show.html', message=msg)
 
 
-@app.route('/messages/<int:message_id>/like', methods=['POST'])
+@app.route('/messages/<int:message_id>/like', methods=['GET', 'POST'])
 def messages_like(message_id):
     """Like a message"""
 
