@@ -7,6 +7,7 @@
 
 import os
 from unittest import TestCase
+from sqlalchemy.exc import IntegrityError
 
 from models import db, User, Message, Follows
 
@@ -110,19 +111,55 @@ class UserModelTestCase(TestCase):
 
     ##### Signup Tests #################################
 
-    def test_user_signup(self):
-        u_signup = User.signup('testUser', 'test@email.com', 'testpassword', None)
-        uid = 55555
-        u_signup.id = uid
-
+    def test_valid_signup(self):
+        u3 = User.signup('testUser', 'test@email.com', 'testpassword', None)
+        uid3 = 333
+        u3.id = uid3
         db.session.commit()
 
-        u_signup = User.query.get(uid)
+        u3 = User.query.get(uid3)
 
-        self.assertIsNotNone(u_signup)
-        self.assertEqual(u_signup.username, 'testUser')
-        self.assertEqual(u_signup.email, 'test@email.com')
-        self.assertEqual(u_signup.password, 'testpassword')
+        self.assertIsNotNone(u3)
+        self.assertEqual(u3.username, 'testUser')
+        self.assertEqual(u3.email, 'test@email.com')
+        self.assertIn('$2b', u3.password)
+
+    def test_invalid_username_signup(self):
+        u4 = User.signup(None, 'invalid@email.com', 'password', None)
+        uid4 = 4444
+        u4.id = uid4
+        with self.assertRaises(IntegrityError) as context:
+            db.session.commit()
+
+    def test_invalid_email_signup(self):
+        u4 = User.signup('email', None, 'password', None)
+        uid4 = 4444
+        u4.id = uid4
+        with self.assertRaises(IntegrityError) as context:
+            db.session.commit()
+
+    def test_invalid_password_signup(self):
+        with self.assertRaises(ValueError) as context:
+            User.signup('testuser', 'test@email.com', None, None)
+
+        
+    ##### Authentication Tests #################################
+
+    def test_valid_auth(self):
+        self.assertTrue(User.authenticate(self.u1.username, 'password'))
+
+    def test_invalid_username(self):
+        self.assertFalse(User.authenticate('wrong', 'password'))
+
+    def test_invalid_password(self):
+        self.assertFalse(User.authenticate('user1', 'wrong'))
+      
+
+
+
+        
+
+
         
 
 
